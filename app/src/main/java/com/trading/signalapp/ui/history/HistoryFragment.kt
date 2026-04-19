@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.trading.signalapp.api.ApiResult
+import com.trading.signalapp.api.Result
 import com.trading.signalapp.databinding.FragmentHistoryBinding
 import com.trading.signalapp.viewmodel.MainViewModel
 
@@ -30,15 +30,23 @@ class HistoryFragment : Fragment() {
 
         viewModel.history.observe(viewLifecycleOwner) { result ->
             when (result) {
-                is ApiResult.Loading -> { binding.progressBar.visibility = View.VISIBLE; binding.tvEmpty.visibility = View.GONE }
-                is ApiResult.Success -> {
+                is Result.Loading -> {
+                    binding.progressBar.visibility = View.VISIBLE
+                    binding.tvEmpty.visibility = View.GONE
+                }
+                is Result.Success -> {
                     binding.progressBar.visibility = View.GONE
                     binding.swipeRefresh.isRefreshing = false
-                    if (result.data.isEmpty()) { binding.tvEmpty.visibility = View.VISIBLE; binding.tvEmpty.text = "No history found." }
-                    else { binding.tvEmpty.visibility = View.GONE; adapter.submitList(result.data) }
+                    if (result.data.isEmpty()) {
+                        binding.tvEmpty.visibility = View.VISIBLE
+                        binding.tvEmpty.text = "No history found."
+                    } else {
+                        binding.tvEmpty.visibility = View.GONE
+                        adapter.submitList(result.data)
+                    }
                     viewModel.loadStats(viewModel.selectedPair.value ?: "BTC/USD")
                 }
-                is ApiResult.Error -> {
+                is Result.Error -> {
                     binding.progressBar.visibility = View.GONE
                     binding.swipeRefresh.isRefreshing = false
                     binding.tvEmpty.visibility = View.VISIBLE
@@ -48,7 +56,7 @@ class HistoryFragment : Fragment() {
         }
 
         viewModel.stats.observe(viewLifecycleOwner) { result ->
-            if (result is ApiResult.Success) {
+            if (result is Result.Success) {
                 val s = result.data
                 val wr = s.winRate?.let { "%.1f%%".format(it * 100) } ?: "—"
                 binding.tvWinRate.text = "Win Rate: $wr  |  Total: ${s.totalSignals ?: 0}"
@@ -57,7 +65,9 @@ class HistoryFragment : Fragment() {
 
         viewModel.selectedPair.observe(viewLifecycleOwner) { binding.tvCurrentPair.text = it }
 
-        binding.swipeRefresh.setOnRefreshListener { viewModel.loadHistory(viewModel.selectedPair.value ?: "BTC/USD") }
+        binding.swipeRefresh.setOnRefreshListener {
+            viewModel.loadHistory(viewModel.selectedPair.value ?: "BTC/USD")
+        }
         viewModel.loadHistory(viewModel.selectedPair.value ?: "BTC/USD")
     }
 

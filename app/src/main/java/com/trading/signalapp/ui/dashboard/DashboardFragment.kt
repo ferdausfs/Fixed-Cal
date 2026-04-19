@@ -24,10 +24,20 @@ class DashboardFragment : Fragment() {
         super.onViewCreated(view, s)
         vm.health.observe(viewLifecycleOwner) { result ->
             when (result) {
-                is Result.Loading -> { b.progressBar.visibility = View.VISIBLE; b.scrollContent.visibility = View.GONE }
-                is Result.Success -> { b.progressBar.visibility = View.GONE; b.scrollContent.visibility = View.VISIBLE; updateUI(result.data) }
-                is Result.Error   -> { b.progressBar.visibility = View.GONE; b.tvError.text = result.message; b.tvError.visibility = View.VISIBLE }
-                else -> {}
+                is Result.Loading -> {
+                    b.progressBar.visibility = View.VISIBLE
+                    b.scrollContent.visibility = View.GONE
+                }
+                is Result.Success -> {
+                    b.progressBar.visibility = View.GONE
+                    b.tvError.visibility = View.GONE
+                    updateUI(result.data)
+                }
+                is Result.Error -> {
+                    b.progressBar.visibility = View.GONE
+                    b.tvError.text = result.message
+                    b.tvError.visibility = View.VISIBLE
+                }
             }
         }
         b.swipeRefresh.setOnRefreshListener { vm.loadHealth(); b.swipeRefresh.isRefreshing = false }
@@ -35,12 +45,13 @@ class DashboardFragment : Fragment() {
     }
 
     private fun updateUI(data: HealthResponse) {
-        b.tvError.visibility = View.GONE
+        b.scrollContent.visibility = View.VISIBLE
         val isHealthy = data.status == "healthy"
         b.tvServerStatus.text = if (isHealthy) "● ONLINE" else "● OFFLINE"
         b.tvServerStatus.setTextColor(ContextCompat.getColor(requireContext(),
             if (isHealthy) R.color.signal_buy else R.color.signal_sell))
         b.tvServerVersion.text = "v${data.version ?: "?"}"
+        b.tvApiKeys.text = "${data.apiKeys?.configured ?: 0} API keys configured"
 
         data.currentSession?.let { s ->
             b.tvSession.text = s.sessions?.joinToString(" + ")?.ifEmpty { "OFF MARKET" } ?: "—"
@@ -76,7 +87,6 @@ class DashboardFragment : Fragment() {
             b.tvNewsMargin.text    = f.newsBlackoutMargin ?: "—"
         }
 
-        data.apiKeys?.let { b.tvApiKeys.text = "${it.configured ?: 0} API keys configured" }
         data.indicators?.let { b.tvIndicatorCount.text = "${it.size} active indicators" }
     }
 
