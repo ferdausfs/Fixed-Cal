@@ -102,8 +102,8 @@ class ScanService : Service() {
 
             if (!response.isSuccessful) return
 
-            val body = response.body?.string() ?: return
-            val json = JSONObject(body)
+            val responseBody = response.body?.string() ?: return
+            val json = JSONObject(responseBody)
 
             val signal = json.optJSONObject("signal") ?: return
             val final  = signal.optString("finalSignal", "")
@@ -114,9 +114,9 @@ class ScanService : Service() {
             val gradeStr = if (grade.isNotEmpty()) " [$grade]" else ""
             val arrow   = if (final == "BUY") "▲" else "▼"
             val title   = "FTT — $pair $arrow $final$gradeStr"
-            val body    = "$final · $conf% confidence · Scan result"
+            val notifBody = "$final · $conf% confidence · Scan result"
 
-            NotifHelper.show(this, notifId++, title, body)
+            NotifHelper.show(this, notifId++, title, notifBody)
             if (notifId > 9000) notifId = 2000
 
         } catch (e: Exception) {
