@@ -8,24 +8,25 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    private val loggingInterceptor = HttpLoggingInterceptor().apply {
+    private val logging = HttpLoggingInterceptor().apply {
         level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
                 else HttpLoggingInterceptor.Level.NONE
     }
-
-    private val okHttpClient = OkHttpClient.Builder()
-        .addInterceptor(loggingInterceptor)
+    private val client = OkHttpClient.Builder()
+        .addInterceptor(logging)
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(15, TimeUnit.SECONDS)
         .build()
 
-    val service: TradingApiService by lazy {
+    fun build(baseUrl: String): TradingApiService =
         Retrofit.Builder()
-            .baseUrl(BuildConfig.BASE_URL)
-            .client(okHttpClient)
+            .baseUrl(if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/")
+            .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(TradingApiService::class.java)
-    }
+
+    // Default services
+    val default: TradingApiService by lazy { build(BuildConfig.BASE_URL) }
+    val otc: TradingApiService by lazy { build(BuildConfig.OTC_BASE_URL) }
 }

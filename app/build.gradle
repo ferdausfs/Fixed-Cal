@@ -11,36 +11,25 @@ android {
         applicationId "com.trading.signalapp"
         minSdk 26
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField "String", "BASE_URL", '"https://fttotcv6.umuhammadiswa.workers.dev/"'
+        buildConfigField "String", "BASE_URL",     '"https://asignal.umuhammadiswa.workers.dev/"'
+        buildConfigField "String", "OTC_BASE_URL", '"https://fttotcv6.umuhammadiswa.workers.dev/"'
     }
 
     buildTypes {
-        debug {
-            debuggable true
-            minifyEnabled false
-        }
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
+        debug { debuggable true; minifyEnabled false }
+        release { minifyEnabled false; proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro' }
     }
 
-    buildFeatures {
-        viewBinding true
-        buildConfig true
-    }
+    buildFeatures { viewBinding true; buildConfig true }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
-
-    kotlinOptions {
-        jvmTarget = '17'
-    }
+    kotlinOptions { jvmTarget = '17' }
 }
 
 dependencies {

@@ -1,9 +1,6 @@
 package com.trading.signalapp.api
 
-import com.trading.signalapp.model.HealthResponse
-import com.trading.signalapp.model.HistoryResponse
-import com.trading.signalapp.model.SignalResponse
-import com.trading.signalapp.model.StatsResponse
+import com.trading.signalapp.model.*
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -13,7 +10,7 @@ interface TradingApiService {
     suspend fun getHealth(): Response<HealthResponse>
 
     @GET("/api/signal")
-    suspend fun getSignal(@Query("pair") pair: String): Response<SignalResponse>
+    suspend fun getSignal(@Query("pair") pair: String): Response<ApiSignalResponse>
 
     @GET("/api/history")
     suspend fun getHistory(

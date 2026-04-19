@@ -1,179 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/swipe_refresh"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/background">
-
-    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
-
-        <ProgressBar android:id="@+id/progress_bar"
-            android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_gravity="center" android:visibility="gone" />
-
-        <TextView android:id="@+id/tv_error"
-            android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_gravity="center" android:padding="24dp"
-            android:textColor="@color/signal_sell" android:textSize="14sp"
-            android:visibility="gone" />
-
-        <ScrollView android:id="@+id/scroll_content"
-            android:layout_width="match_parent" android:layout_height="match_parent"
-            android:visibility="gone">
-
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="vertical" android:padding="16dp">
-
-                <!-- Server Status -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    app:cardBackgroundColor="@color/surface" app:cardCornerRadius="12dp"
-                    app:cardElevation="0dp" app:strokeColor="@color/stroke" app:strokeWidth="1dp">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:orientation="vertical" android:padding="16dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="SERVER" android:textColor="@color/text_secondary"
-                            android:textSize="11sp" android:letterSpacing="0.1" />
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp" android:gravity="center_vertical" android:orientation="horizontal">
-                            <TextView android:id="@+id/tv_server_status"
-                                android:layout_width="0dp" android:layout_height="wrap_content"
-                                android:layout_weight="1" android:text="● CHECKING..."
-                                android:textSize="16sp" android:textStyle="bold" />
-                            <TextView android:id="@+id/tv_server_version"
-                                android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                android:textColor="@color/text_secondary" android:textSize="13sp" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Session -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    app:cardBackgroundColor="@color/surface" app:cardCornerRadius="12dp"
-                    app:cardElevation="0dp" app:strokeColor="@color/stroke" app:strokeWidth="1dp">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:orientation="vertical" android:padding="16dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="CURRENT SESSION" android:textColor="@color/text_secondary"
-                            android:textSize="11sp" android:letterSpacing="0.1" />
-                        <TextView android:id="@+id/tv_session"
-                            android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp" android:text="—"
-                            android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold" />
-                        <TextView android:id="@+id/tv_session_quality"
-                            android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp" android:text="—" android:textSize="13sp" />
-                        <TextView android:id="@+id/tv_news_blackout"
-                            android:layout_width="match_parent" android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp" android:background="@color/sell_bg"
-                            android:padding="8dp" android:textColor="@color/signal_sell"
-                            android:textSize="13sp" android:textStyle="bold" android:visibility="gone" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Markets -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    app:cardBackgroundColor="@color/surface" app:cardCornerRadius="12dp"
-                    app:cardElevation="0dp" app:strokeColor="@color/stroke" app:strokeWidth="1dp">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:orientation="vertical" android:padding="16dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="MARKETS" android:textColor="@color/text_secondary"
-                            android:textSize="11sp" android:letterSpacing="0.1" />
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp" android:orientation="horizontal">
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                                android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                    android:text="FOREX" android:textColor="@color/text_secondary" android:textSize="11sp" />
-                                <TextView android:id="@+id/tv_forex_status"
-                                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                    android:layout_marginTop="4dp" android:text="—"
-                                    android:textSize="13sp" android:textStyle="bold" />
-                            </LinearLayout>
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                                android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                    android:text="CRYPTO" android:textColor="@color/text_secondary" android:textSize="11sp" />
-                                <TextView android:id="@+id/tv_crypto_status"
-                                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                    android:layout_marginTop="4dp" android:text="—"
-                                    android:textSize="13sp" android:textStyle="bold" />
-                            </LinearLayout>
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Filters -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    app:cardBackgroundColor="@color/surface" app:cardCornerRadius="12dp"
-                    app:cardElevation="0dp" app:strokeColor="@color/stroke" app:strokeWidth="1dp">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:orientation="vertical" android:padding="16dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="SIGNAL FILTERS" android:textColor="@color/text_secondary"
-                            android:textSize="11sp" android:letterSpacing="0.1" />
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp" android:orientation="horizontal">
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                                android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                                <TextView android:id="@+id/tv_min_confidence"
-                                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                    android:text="—" android:textColor="@color/accent"
-                                    android:textSize="18sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                    android:text="Min Confidence" android:textColor="@color/text_secondary" android:textSize="11sp" />
-                            </LinearLayout>
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                                android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                                <TextView android:id="@+id/tv_volume_spike"
-                                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                    android:text="—" android:textColor="@color/accent"
-                                    android:textSize="18sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                    android:text="Vol. Spike" android:textColor="@color/text_secondary" android:textSize="11sp" />
-                            </LinearLayout>
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                                android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                                <TextView android:id="@+id/tv_news_margin"
-                                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                    android:text="—" android:textColor="@color/accent"
-                                    android:textSize="18sp" android:textStyle="bold" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                    android:text="News Margin" android:textColor="@color/text_secondary" android:textSize="11sp" />
-                            </LinearLayout>
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Indicators -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="@color/surface" app:cardCornerRadius="12dp"
-                    app:cardElevation="0dp" app:strokeColor="@color/stroke" app:strokeWidth="1dp">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:orientation="vertical" android:padding="16dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="INDICATORS" android:textColor="@color/text_secondary"
-                            android:textSize="11sp" android:letterSpacing="0.1" />
-                        <TextView android:id="@+id/tv_indicator_count"
-                            android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp" android:text="—"
-                            android:textColor="@color/text_primary" android:textSize="15sp" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-            </LinearLayout>
-        </ScrollView>
-    </FrameLayout>
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/swipeRefresh" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/background">
+<FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
+<ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:visibility="gone"/>
+<TextView android:id="@+id/tvError" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:padding="24dp" android:textColor="@color/signal_sell" android:visibility="gone"/>
+<ScrollView android:id="@+id/scrollContent" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+<com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="10dp" app:cardBackgroundColor="@color/surface" app:cardCornerRadius="12dp" app:strokeColor="@color/stroke" app:strokeWidth="1dp">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SERVER" android:textColor="@color/text_secondary" android:textSize="10sp"/>
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="6dp">
+<TextView android:id="@+id/tvServerStatus" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="● CHECKING..." android:textSize="15sp" android:textStyle="bold"/>
+<TextView android:id="@+id/tvServerVersion" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/text_secondary" android:textSize="12sp" android:fontFamily="monospace"/>
+</LinearLayout>
+<TextView android:id="@+id/tvApiKeys" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/text_secondary" android:textSize="11sp" android:layout_marginTop="4dp"/>
+</LinearLayout></com.google.android.material.card.MaterialCardView>
+<com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="10dp" app:cardBackgroundColor="@color/surface" app:cardCornerRadius="12dp" app:strokeColor="@color/stroke" app:strokeWidth="1dp">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SESSION" android:textColor="@color/text_secondary" android:textSize="10sp"/>
+<TextView android:id="@+id/tvSession" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="—" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold"/>
+<TextView android:id="@+id/tvSessionQuality" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="—" android:textSize="12sp"/>
+<TextView android:id="@+id/tvNewsBlackout" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:background="@color/sell_bg" android:padding="8dp" android:textColor="@color/signal_sell" android:textSize="12sp" android:textStyle="bold" android:visibility="gone"/>
+</LinearLayout></com.google.android.material.card.MaterialCardView>
+<com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="10dp" app:cardBackgroundColor="@color/surface" app:cardCornerRadius="12dp" app:strokeColor="@color/stroke" app:strokeWidth="1dp">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="MARKETS" android:textColor="@color/text_secondary" android:textSize="10sp"/>
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="10dp">
+<LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="FOREX" android:textColor="@color/text_secondary" android:textSize="10sp"/>
+<TextView android:id="@+id/tvForexStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textSize="12sp" android:textStyle="bold" android:layout_marginTop="3dp"/>
+</LinearLayout>
+<LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="CRYPTO" android:textColor="@color/text_secondary" android:textSize="10sp"/>
+<TextView android:id="@+id/tvCryptoStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textSize="12sp" android:textStyle="bold" android:layout_marginTop="3dp"/>
+</LinearLayout>
+</LinearLayout></LinearLayout></com.google.android.material.card.MaterialCardView>
+<com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="10dp" app:cardBackgroundColor="@color/surface" app:cardCornerRadius="12dp" app:strokeColor="@color/stroke" app:strokeWidth="1dp">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="FILTERS" android:textColor="@color/text_secondary" android:textSize="10sp"/>
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="10dp">
+<LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+<TextView android:id="@+id/tvMinConfidence" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="@color/accent" android:textSize="18sp" android:textStyle="bold"/>
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Min Conf" android:textColor="@color/text_secondary" android:textSize="10sp"/>
+</LinearLayout>
+<LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+<TextView android:id="@+id/tvVolumeSpike" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="@color/accent" android:textSize="18sp" android:textStyle="bold"/>
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Vol Spike" android:textColor="@color/text_secondary" android:textSize="10sp"/>
+</LinearLayout>
+<LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+<TextView android:id="@+id/tvNewsMargin" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="@color/accent" android:textSize="18sp" android:textStyle="bold"/>
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="News Margin" android:textColor="@color/text_secondary" android:textSize="10sp"/>
+</LinearLayout>
+</LinearLayout></LinearLayout></com.google.android.material.card.MaterialCardView>
+<com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="16dp" app:cardBackgroundColor="@color/surface" app:cardCornerRadius="12dp" app:strokeColor="@color/stroke" app:strokeWidth="1dp">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="INDICATORS" android:textColor="@color/text_secondary" android:textSize="10sp"/>
+<TextView android:id="@+id/tvIndicatorCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="—" android:textColor="@color/text_primary" android:textSize="14sp"/>
+</LinearLayout></com.google.android.material.card.MaterialCardView>
+</LinearLayout></ScrollView></FrameLayout>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

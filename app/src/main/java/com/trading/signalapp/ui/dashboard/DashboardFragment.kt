@@ -1,88 +1,84 @@
 package com.trading.signalapp.ui.dashboard
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.trading.signalapp.R
-import com.trading.signalapp.api.ApiResult
+import com.trading.signalapp.api.Result
 import com.trading.signalapp.databinding.FragmentDashboardBinding
 import com.trading.signalapp.model.HealthResponse
 import com.trading.signalapp.viewmodel.MainViewModel
 
 class DashboardFragment : Fragment() {
-    private var _binding: FragmentDashboardBinding? = null
-    private val binding get() = _binding!!
-    private val viewModel: MainViewModel by activityViewModels()
+    private var _b: FragmentDashboardBinding? = null
+    private val b get() = _b!!
+    private val vm: MainViewModel by activityViewModels()
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = FragmentDashboardBinding.inflate(inflater, container, false)
-        return binding.root
+    override fun onCreateView(i: LayoutInflater, c: ViewGroup?, s: Bundle?): View {
+        _b = FragmentDashboardBinding.inflate(i, c, false); return b.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewModel.health.observe(viewLifecycleOwner) { result ->
+    override fun onViewCreated(view: View, s: Bundle?) {
+        super.onViewCreated(view, s)
+        vm.health.observe(viewLifecycleOwner) { result ->
             when (result) {
-                is ApiResult.Loading -> { binding.progressBar.visibility = View.VISIBLE; binding.scrollContent.visibility = View.GONE }
-                is ApiResult.Success -> { binding.progressBar.visibility = View.GONE; binding.tvError.visibility = View.GONE; updateUI(result.data) }
-                is ApiResult.Error   -> { binding.progressBar.visibility = View.GONE; binding.tvError.text = result.message; binding.tvError.visibility = View.VISIBLE }
+                is Result.Loading -> { b.progressBar.visibility = View.VISIBLE; b.scrollContent.visibility = View.GONE }
+                is Result.Success -> { b.progressBar.visibility = View.GONE; b.scrollContent.visibility = View.VISIBLE; updateUI(result.data) }
+                is Result.Error   -> { b.progressBar.visibility = View.GONE; b.tvError.text = result.message; b.tvError.visibility = View.VISIBLE }
+                else -> {}
             }
         }
-        binding.swipeRefresh.setOnRefreshListener {
-            binding.tvError.visibility = View.GONE
-            viewModel.loadHealth()
-            binding.swipeRefresh.isRefreshing = false
-        }
-        viewModel.loadHealth()
+        b.swipeRefresh.setOnRefreshListener { vm.loadHealth(); b.swipeRefresh.isRefreshing = false }
+        vm.loadHealth()
     }
 
     private fun updateUI(data: HealthResponse) {
-        binding.scrollContent.visibility = View.VISIBLE
-        // Server status
+        b.tvError.visibility = View.GONE
         val isHealthy = data.status == "healthy"
-        binding.tvServerStatus.text = if (isHealthy) "● ONLINE" else "● OFFLINE"
-        binding.tvServerStatus.setTextColor(ContextCompat.getColor(requireContext(), if (isHealthy) R.color.signal_buy else R.color.signal_sell))
-        binding.tvServerVersion.text = "v${data.version}"
+        b.tvServerStatus.text = if (isHealthy) "● ONLINE" else "● OFFLINE"
+        b.tvServerStatus.setTextColor(ContextCompat.getColor(requireContext(),
+            if (isHealthy) R.color.signal_buy else R.color.signal_sell))
+        b.tvServerVersion.text = "v${data.version ?: "?"}"
 
-        // Session
         data.currentSession?.let { s ->
-            binding.tvSession.text = s.sessions.joinToString(" + ").ifEmpty { "OFF MARKET" }
-            binding.tvSessionQuality.text = s.quality
-            binding.tvSessionQuality.setTextColor(ContextCompat.getColor(requireContext(),
-                when (s.quality) { "HIGHEST" -> R.color.signal_buy; "HIGH" -> R.color.quality_high; else -> R.color.quality_medium }))
+            b.tvSession.text = s.sessions?.joinToString(" + ")?.ifEmpty { "OFF MARKET" } ?: "—"
+            b.tvSessionQuality.text = s.quality ?: "—"
+            b.tvSessionQuality.setTextColor(ContextCompat.getColor(requireContext(), when (s.quality) {
+                "HIGHEST" -> R.color.signal_buy
+                "HIGH"    -> R.color.quality_high
+                else      -> R.color.quality_medium
+            }))
         }
 
-        // News blackout
         data.newsBlackout?.let { n ->
-            binding.tvNewsBlackout.visibility = if (n.blocked) View.VISIBLE else View.GONE
-            if (n.blocked) binding.tvNewsBlackout.text = "⚠ NEWS BLACKOUT: ${n.label}"
+            if (n.blocked == true) {
+                b.tvNewsBlackout.visibility = View.VISIBLE
+                b.tvNewsBlackout.text = "⚠ NEWS BLACKOUT: ${n.label}"
+            } else b.tvNewsBlackout.visibility = View.GONE
         }
 
-        // Markets
         data.markets?.forex?.let { f ->
-            val open = f.status.contains("OPEN", ignoreCase = true)
-            binding.tvForexStatus.text = f.status
-            binding.tvForexStatus.setTextColor(ContextCompat.getColor(requireContext(), if (open) R.color.signal_buy else R.color.text_secondary))
+            val open = f.status?.contains("OPEN", ignoreCase = true) == true
+            b.tvForexStatus.text = f.status ?: "—"
+            b.tvForexStatus.setTextColor(ContextCompat.getColor(requireContext(),
+                if (open) R.color.signal_buy else R.color.text_secondary))
         }
         data.markets?.crypto?.let {
-            binding.tvCryptoStatus.text = "ALWAYS OPEN 24/7"
-            binding.tvCryptoStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.signal_buy))
+            b.tvCryptoStatus.text = "ALWAYS OPEN 24/7"
+            b.tvCryptoStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.signal_buy))
         }
 
-        // Filters
         data.filters?.let { f ->
-            binding.tvMinConfidence.text = f.minConfidenceFloor
-            binding.tvVolumeSpike.text = f.volumeSpikeMultiplier
-            binding.tvNewsMargin.text = f.newsBlackoutMargin
+            b.tvMinConfidence.text = f.minConfidenceFloor ?: "—"
+            b.tvVolumeSpike.text   = f.volumeSpikeMultiplier ?: "—"
+            b.tvNewsMargin.text    = f.newsBlackoutMargin ?: "—"
         }
 
-        // Indicators
-        data.indicators?.let { binding.tvIndicatorCount.text = "${it.size} active indicators" }
+        data.apiKeys?.let { b.tvApiKeys.text = "${it.configured ?: 0} API keys configured" }
+        data.indicators?.let { b.tvIndicatorCount.text = "${it.size} active indicators" }
     }
 
-    override fun onDestroyView() { super.onDestroyView(); _binding = null }
+    override fun onDestroyView() { super.onDestroyView(); _b = null }
 }

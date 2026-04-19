@@ -1,50 +1,75 @@
 package com.trading.signalapp.api
 
-import com.trading.signalapp.model.HealthResponse
-import com.trading.signalapp.model.HistoryResponse
-import com.trading.signalapp.model.SignalResponse
-import com.trading.signalapp.model.StatsResponse
+import com.trading.signalapp.model.*
+import com.trading.signalapp.util.PairUtils
+import com.trading.signalapp.util.SignalParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-sealed class ApiResult<out T> {
-    data class Success<T>(val data: T) : ApiResult<T>()
-    data class Error(val message: String) : ApiResult<Nothing>()
-    object Loading : ApiResult<Nothing>()
+sealed class Result<out T> {
+    data class Success<T>(val data: T) : Result<T>()
+    data class Error(val message: String, val isApiLimit: Boolean = false) : Result<Nothing>()
+    object Loading : Result<Nothing>()
 }
 
-class TradingRepository {
-    private val api = RetrofitClient.service
+class TradingRepository(private val savedBaseUrl: String? = null) {
 
-    suspend fun getHealth(): ApiResult<HealthResponse> = withContext(Dispatchers.IO) {
-        try {
-            val r = api.getHealth()
-            if (r.isSuccessful) r.body()?.let { ApiResult.Success(it) } ?: ApiResult.Error("Empty response")
-            else ApiResult.Error("Server error: ${r.code()}")
-        } catch (e: Exception) { ApiResult.Error(e.message ?: "Network error") }
+    private fun apiFor(pair: String): TradingApiService {
+        val isOtc = PairUtils.isOtc(pair)
+        return when {
+            isOtc -> RetrofitClient.otc
+            savedBaseUrl != null -> RetrofitClient.build(savedBaseUrl)
+            else -> RetrofitClient.default
+        }
     }
 
-    suspend fun getSignal(pair: String): ApiResult<SignalResponse> = withContext(Dispatchers.IO) {
+    suspend fun fetchSignal(pair: String): Result<ParsedSignal> = withContext(Dispatchers.IO) {
         try {
-            val r = api.getSignal(pair)
-            if (r.isSuccessful) r.body()?.let { ApiResult.Success(it) } ?: ApiResult.Error("Empty response")
-            else ApiResult.Error("Server error: ${r.code()}")
-        } catch (e: Exception) { ApiResult.Error(e.message ?: "Network error") }
+            val apiPair = PairUtils.toApiPair(pair)
+            val response = apiFor(pair).getSignal(apiPair)
+            if (!response.isSuccessful)
+                return@withContext Result.Error("HTTP ${response.code()}")
+
+            val body = response.body()
+                ?: return@withContext Result.Error("Empty response")
+
+            // Check for DUMMY_FALLBACK (API limit exceeded)
+            val sig = body.signal
+            if (sig?.method == "DUMMY_FALLBACK" || body.source == "DUMMY_FALLBACK") {
+                val errMsg = body.errors?.values?.firstOrNull() ?: "API limit exceeded"
+                return@withContext Result.Error(errMsg, isApiLimit = true)
+            }
+
+            val parsed = SignalParser.parse(body)
+                ?: return@withContext Result.Error("Could not parse signal")
+
+            Result.Success(parsed)
+        } catch (e: Exception) {
+            Result.Error(e.message ?: "Network error")
+        }
     }
 
-    suspend fun getHistory(pair: String, limit: Int = 20): ApiResult<HistoryResponse> = withContext(Dispatchers.IO) {
+    suspend fun fetchHealth(): Result<HealthResponse> = withContext(Dispatchers.IO) {
         try {
-            val r = api.getHistory(pair, limit)
-            if (r.isSuccessful) r.body()?.let { ApiResult.Success(it) } ?: ApiResult.Error("Empty response")
-            else ApiResult.Error("Server error: ${r.code()}")
-        } catch (e: Exception) { ApiResult.Error(e.message ?: "Network error") }
+            val r = RetrofitClient.default.getHealth()
+            if (r.isSuccessful) r.body()?.let { Result.Success(it) } ?: Result.Error("Empty")
+            else Result.Error("HTTP ${r.code()}")
+        } catch (e: Exception) { Result.Error(e.message ?: "Network error") }
     }
 
-    suspend fun getStats(pair: String): ApiResult<StatsResponse> = withContext(Dispatchers.IO) {
+    suspend fun fetchHistory(pair: String, limit: Int = 20): Result<HistoryResponse> = withContext(Dispatchers.IO) {
         try {
-            val r = api.getStats(pair)
-            if (r.isSuccessful) r.body()?.let { ApiResult.Success(it) } ?: ApiResult.Error("Empty response")
-            else ApiResult.Error("Server error: ${r.code()}")
-        } catch (e: Exception) { ApiResult.Error(e.message ?: "Network error") }
+            val r = apiFor(pair).getHistory(pair, limit)
+            if (r.isSuccessful) r.body()?.let { Result.Success(it) } ?: Result.Error("Empty")
+            else Result.Error("HTTP ${r.code()}")
+        } catch (e: Exception) { Result.Error(e.message ?: "Network error") }
+    }
+
+    suspend fun fetchStats(pair: String): Result<StatsResponse> = withContext(Dispatchers.IO) {
+        try {
+            val r = apiFor(pair).getStats(pair)
+            if (r.isSuccessful) r.body()?.let { Result.Success(it) } ?: Result.Error("Empty")
+            else Result.Error("HTTP ${r.code()}")
+        } catch (e: Exception) { Result.Error(e.message ?: "Network error") }
     }
 }
