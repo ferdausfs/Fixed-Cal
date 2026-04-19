@@ -3,7 +3,7 @@ package com.trading.signalapp.model
 import com.google.gson.JsonElement
 import com.google.gson.annotations.SerializedName
 
-// ── API Raw Response (matches HTML fetchSig exactly) ─────────────────────────
+// ── API Raw Response ──────────────────────────────────────────────────────────
 
 data class ApiSignalResponse(
     val pair: String?,
@@ -15,9 +15,9 @@ data class ApiSignalResponse(
 )
 
 data class RawSignal(
-    val finalSignal: String?,       // BUY / SELL / NO_TRADE / HOLD
-    val confidence: String?,        // "78%"
-    val grade: JsonElement?,        // string or object {grade:"A"}
+    val finalSignal: String?,
+    val confidence: String?,
+    val grade: JsonElement?,
     val recommendations: Map<String, RawRecommendation>?,
     val bestTimeframe: RawBestTF?,
     val timeframeAnalysis: Map<String, RawTFAnalysis>?,
@@ -42,25 +42,25 @@ data class RawRecommendation(
 
 data class RawScore(val up: Int?, val down: Int?)
 
-data class RawEntry(val price: String?)
+data class RawEntry(val price: JsonElement?)  // can be string or number
 
 data class RawExpiry(
-    val totalMinutes: Int?,
+    val totalMinutes: JsonElement?,      // can be int or string
     val humanReadable: String?,
-    val countdown: String?
+    val countdown: JsonElement?          // can be string OR object — use JsonElement
 )
 
 data class RawBestTF(val timeframe: String?)
 
 data class RawTFAnalysis(
-    val indicators: Map<String, String>?
+    val indicators: Map<String, JsonElement>?  // values can be string or number
 )
 
 data class RawVotes(
-    @SerializedName("BUY") val buy: Int?,
+    @SerializedName("BUY")  val buy: Int?,
     @SerializedName("SELL") val sell: Int?,
-    val weightedBuy: Double?,
-    val weightedSell: Double?
+    val weightedBuy: JsonElement?,   // can be int or double
+    val weightedSell: JsonElement?
 )
 
 data class RawSession(
@@ -69,21 +69,21 @@ data class RawSession(
 )
 
 data class AiValidation(
-    val status: String?,    // agree / disagree / uncertain
-    val confidence: Int?,
+    val status: String?,
+    val confidence: JsonElement?,  // can be int or string
     val reason: String?,
     val concerns: String?
 )
 
-// ── Parsed Signal (what UI uses — mirrors HTML's parsed object) ────────────────
+// ── Parsed Signal (UI model) ──────────────────────────────────────────────────
 
 data class ParsedSignal(
-    val label: String,              // BUY / SELL / WAIT / HOLD
-    val confidence: Int,            // 0–100
-    val grade: String,              // A+ / A / B / C / D / F / ""
+    val label: String,
+    val confidence: Int,
+    val grade: String,
     val pair: String,
     val timestamp: String,
-    val entryPrice: String?,        // "1.23456"
+    val entryPrice: String?,
     val expiryMinutes: Int,
     val expirySuggestion: String,
     val tfAgreement: String,
@@ -91,7 +91,7 @@ data class ParsedSignal(
     val sellScore: Int,
     val sessionLabel: String,
     val h1Structure: String,
-    val atrLevel: String,           // HIGH / MED / LOW
+    val atrLevel: String,
     val marketRegime: String,
     val reasons: List<String>,
     val tfBreakdown: Map<String, TFBreakdown>,
@@ -102,13 +102,13 @@ data class ParsedSignal(
 )
 
 data class TFBreakdown(
-    val bias: String,               // BUY / SELL / NEUTRAL
+    val bias: String,
     val buyVotes: Int,
     val sellVotes: Int,
     val adxValue: Double?
 )
 
-// ── Journal ────────────────────────────────────────────────────────────────────
+// ── Journal ───────────────────────────────────────────────────────────────────
 
 data class JournalEntry(
     val id: String,
@@ -117,19 +117,19 @@ data class JournalEntry(
     val conf: Int,
     val sess: String,
     val grade: String,
-    val ep: String?,                // entry price
+    val ep: String?,
     val sl: String?,
     val tp: String?,
-    val result: String,             // WIN / LOSS / PENDING
+    val result: String,
     val pips: Double?,
     val note: String,
-    val ts: Long,                   // timestamp millis
+    val ts: Long,
     val isAuto: Boolean,
     val exitPrice: String?,
     val closedTs: Long?
 )
 
-// ── Watchlist ──────────────────────────────────────────────────────────────────
+// ── Watchlist ─────────────────────────────────────────────────────────────────
 
 data class WatchlistItem(
     val pair: String,
@@ -160,9 +160,6 @@ data class Markets(val forex: ForexMarket?, val crypto: CryptoMarket?)
 data class ForexMarket(val status: String?, val holiday: String?)
 data class CryptoMarket(val status: String?, val topPairs: List<String>?)
 data class Filters(val minConfidenceFloor: String?, val volumeSpikeMultiplier: String?, val newsBlackoutMargin: String?)
-
-// ── Grades ────────────────────────────────────────────────────────────────────
-
 data class GradeInfo(val emoji: String, val label: String, val desc: String)
 
 // ── History & Stats ───────────────────────────────────────────────────────────

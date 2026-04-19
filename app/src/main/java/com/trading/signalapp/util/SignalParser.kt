@@ -1,11 +1,33 @@
 package com.trading.signalapp.util
 
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.trading.signalapp.model.*
 
 object SignalParser {
 
-    // Mirrors HTML's fetchSig() parsing logic exactly
+    // Safe helpers to extract from JsonElement
+    private fun JsonElement?.asStrSafe(): String? = try {
+        if (this == null || isJsonNull) null
+        else if (isJsonPrimitive) asString
+        else null
+    } catch (e: Exception) { null }
+
+    private fun JsonElement?.asIntSafe(): Int? = try {
+        if (this == null || isJsonNull) null
+        else if (isJsonPrimitive && asJsonPrimitive.isNumber) asInt
+        else if (isJsonPrimitive) asString.toIntOrNull()
+        else null
+    } catch (e: Exception) { null }
+
+    private fun JsonElement?.asDoubleSafe(): Double? = try {
+        if (this == null || isJsonNull) null
+        else if (isJsonPrimitive && asJsonPrimitive.isNumber) asDouble
+        else if (isJsonPrimitive) asString.toDoubleOrNull()
+        else null
+    } catch (e: Exception) { null }
+
+    // Parse API response → ParsedSignal (mirrors HTML fetchSig exactly)
     fun parse(response: ApiSignalResponse): ParsedSignal? {
         val s = response.signal ?: return null
 
@@ -19,9 +41,12 @@ object SignalParser {
             ?: tfKeys.firstOrNull() ?: "5min"
         val bestRec = rec[bestTFKey]
 
-        val expMins = bestRec?.expiry?.totalMinutes ?: 5
+        // expiry — totalMinutes can be int or string
+        val expMins = bestRec?.expiry?.totalMinutes?.asIntSafe() ?: 5
         val expSug  = bestRec?.expiry?.humanReadable ?: "${expMins}m"
-        val ep      = bestRec?.entry?.price?.toDoubleOrNull()
+
+        // entry price — can be string or number
+        val ep = bestRec?.entry?.price?.asDoubleSafe()
 
         // timeframe breakdown
         val tfa = s.timeframeAnalysis ?: emptyMap()
@@ -30,7 +55,7 @@ object SignalParser {
             val r = rec[tf] ?: return@forEach
             val sc = r.score
             val ind = tfa[tf]?.indicators ?: emptyMap()
-            val adxVal = ind["adx"]?.toDoubleOrNull()
+            val adxVal = ind["adx"]?.asDoubleSafe()
             tfBreakdown[tf] = TFBreakdown(
                 bias      = r.direction ?: "NEUTRAL",
                 buyVotes  = sc?.up ?: 0,
@@ -46,7 +71,7 @@ object SignalParser {
             ?: "N/A"
         sesLbl = sesLbl.replace("OTC_24/7", "OTC 24/7")
 
-        // market condition
+        // market condition → ATR level
         val mc = s.marketCondition ?: emptyList()
         val mcStr = mc.joinToString(",")
         val atrLvl = when {
@@ -55,12 +80,13 @@ object SignalParser {
             else                       -> "MED"
         }
 
-        // grade — can be string or object
+        // grade — string or object {grade:"A"}
         val grade = when {
-            s.grade == null        -> ""
+            s.grade == null         -> ""
             s.grade.isJsonPrimitive -> s.grade.asString
-            s.grade.isJsonObject   -> (s.grade as? JsonObject)?.get("grade")?.asString ?: ""
-            else                   -> ""
+            s.grade.isJsonObject    -> (s.grade as? JsonObject)
+                ?.get("grade")?.asString ?: ""
+            else -> ""
         }
 
         // direction label
@@ -85,8 +111,10 @@ object SignalParser {
         if (s.averageConfluence != null)
             reasons.add("Avg Confluence: ${s.averageConfluence}/11")
 
-        // votes
+        // votes — weightedBuy/Sell can be int or double
         val votes = s.votes
+        val buyScore  = votes?.weightedBuy?.asDoubleSafe()?.toInt() ?: 0
+        val sellScore = votes?.weightedSell?.asDoubleSafe()?.toInt() ?: 0
         val tfAgree = when {
             lbl == "BUY"  && (votes?.buy ?: 0) > 0  -> "${votes?.buy}TF"
             lbl == "SELL" && (votes?.sell ?: 0) > 0 -> "${votes?.sell}TF"
@@ -95,25 +123,25 @@ object SignalParser {
 
         val pair = response.pair ?: "?"
         return ParsedSignal(
-            label          = lbl,
-            confidence     = confNum,
-            grade          = grade,
-            pair           = pair,
-            timestamp      = response.timestamp ?: s.generatedAt ?: "",
-            entryPrice     = ep?.let { PairUtils.formatPrice(pair, it) },
-            expiryMinutes  = expMins,
+            label           = lbl,
+            confidence      = confNum,
+            grade           = grade,
+            pair            = pair,
+            timestamp       = response.timestamp ?: s.generatedAt ?: "",
+            entryPrice      = ep?.let { PairUtils.formatPrice(pair, it) },
+            expiryMinutes   = expMins,
             expirySuggestion = expSug,
-            tfAgreement    = tfAgree,
-            buyScore       = votes?.weightedBuy?.toInt() ?: 0,
-            sellScore      = votes?.weightedSell?.toInt() ?: 0,
-            sessionLabel   = sesLbl,
-            h1Structure    = s.higherTFTrend ?: "NEUTRAL",
-            atrLevel       = atrLvl,
-            marketRegime   = mc.firstOrNull() ?: "",
-            reasons        = reasons,
-            tfBreakdown    = tfBreakdown,
-            aiValidation   = s.aiValidation,
-            isOtc          = PairUtils.isOtc(pair)
+            tfAgreement     = tfAgree,
+            buyScore        = buyScore,
+            sellScore       = sellScore,
+            sessionLabel    = sesLbl,
+            h1Structure     = s.higherTFTrend ?: "NEUTRAL",
+            atrLevel        = atrLvl,
+            marketRegime    = mc.firstOrNull() ?: "",
+            reasons         = reasons,
+            tfBreakdown     = tfBreakdown,
+            aiValidation    = s.aiValidation,
+            isOtc           = PairUtils.isOtc(pair)
         )
     }
 
@@ -123,7 +151,7 @@ object SignalParser {
         "B"  -> Triple("👍", "Good Signal",     "55–69% confidence. Moderate TF alignment.")
         "C"  -> Triple("⚠️", "Moderate Signal", "40–54% confidence. Some conflicts.")
         "D"  -> Triple("⚡", "Weak Signal",     "Below 40% confidence. High risk setup.")
-        "F"  -> Triple("🚫", "Blocked",         "Signal blocked by HTF conflict or below threshold.")
-        else -> Triple("📊", grade,             "—")
+        "F"  -> Triple("🚫", "Blocked",         "Signal blocked by HTF conflict.")
+        else -> Triple("📊", grade.ifEmpty { "?" }, "—")
     }
 }
