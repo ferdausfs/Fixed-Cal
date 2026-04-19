@@ -1,9 +1,18 @@
-*.iml
-.gradle
-/local.properties
-/.idea
-.DS_Store
+# Build outputs
 /build
-/captures
-.externalNativeBuild
-.cxx
+/app/build
+
+# Gradle cache (wrapper jar রাখো, rest ignore)
+.gradle
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# IDE files
+.idea
+*.iml
+*.iws
+local.properties
+
+# Android keystore (কখনো commit করো না)
+*.jks
+*.keystore
