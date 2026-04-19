@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#0D0F14</color>
+    <color name="surface">#161A22</color>
+    <color name="stroke">#252B38</color>
+    <color name="text_primary">#F0F2F5</color>
+    <color name="text_secondary">#6B7280</color>
+    <color name="accent">#3B82F6</color>
+    <color name="signal_buy">#10B981</color>
+    <color name="signal_sell">#EF4444</color>
+    <color name="sell_bg">#2B0D0D</color>
+    <color name="quality_high">#F59E0B</color>
+    <color name="quality_medium">#6B7280</color>
+    <color name="nav_active">#3B82F6</color>
+    <color name="nav_inactive">#4B5563</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
