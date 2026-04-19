@@ -2,11 +2,12 @@ package com.ftt.signal
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.view.View
 import android.view.WindowManager
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
@@ -15,7 +16,9 @@ import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 
 class MainActivity : AppCompatActivity() {
@@ -25,7 +28,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val NOTIF_PERM_CODE = 101
-        // Singleton so ScanService can call back
         var instance: MainActivity? = null
     }
 
@@ -34,30 +36,43 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         instance = this
 
-        // Edge-to-edge: full dark immersive
+        // ── Edge-to-edge + dark system bars ──────────────────
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        window.statusBarColor = Color.parseColor("#07080e")
-        window.navigationBarColor = Color.parseColor("#07080e")
+        window.statusBarColor = Color.TRANSPARENT
+        window.navigationBarColor = Color.TRANSPARENT
         WindowInsetsControllerCompat(window, window.decorView).apply {
             isAppearanceLightStatusBars = false
             isAppearanceLightNavigationBars = false
         }
-        // Keep screen on while app is foreground
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        // Create WebView programmatically (no XML layout needed)
+        // ── WebView ───────────────────────────────────────────
         webView = WebView(this)
-        webView.systemUiVisibility = (
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-        )
         setContentView(webView)
 
-        // ── WebView settings ──────────────────────────────
+        // ── Window insets → HTML-এ inject করো ────────────────
+        // Status bar height → #topbar এর padding-top
+        // Navigation bar height → #navbar এর padding-bottom
+        ViewCompat.setOnApplyWindowInsetsListener(webView) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val statusBarPx = systemBars.top      // px
+            val navBarPx    = systemBars.bottom   // px
+
+            // px → dp conversion (WebView uses CSS px ≈ dp on most devices)
+            val density = resources.displayMetrics.density
+            val statusBarDp = (statusBarPx / density).toInt()
+            val navBarDp    = (navBarPx    / density).toInt()
+
+            // Store for injection after page load
+            webView.tag = Pair(statusBarDp, navBarDp)
+
+            insets
+        }
+
+        // ── WebView settings ──────────────────────────────────
         val ws: WebSettings = webView.settings
         ws.javaScriptEnabled = true
-        ws.domStorageEnabled = true          // localStorage
+        ws.domStorageEnabled = true
         ws.databaseEnabled = true
         ws.allowFileAccess = true
         ws.allowContentAccess = true
@@ -69,39 +84,67 @@ class MainActivity : AppCompatActivity() {
         ws.setSupportZoom(false)
         ws.builtInZoomControls = false
         ws.displayZoomControls = false
-        // Enable hardware acceleration in WebView
-        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
 
-        // ── AndroidBridge ─────────────────────────────────
+        // ── AndroidBridge ─────────────────────────────────────
         bridge = AndroidBridge(this)
         webView.addJavascriptInterface(bridge, "AndroidBridge")
 
-        // ── WebViewClient: সব link এই same WebView-এ খুলবে ─
+        // ── WebViewClient ─────────────────────────────────────
         webView.webViewClient = object : WebViewClient() {
+
             override fun shouldOverrideUrlLoading(
                 view: WebView,
                 request: WebResourceRequest
             ): Boolean {
                 val url = request.url.toString()
-                // External broker links (Olymp Trade, Quotex) → system browser
                 if (!url.startsWith("file://") &&
-                    !url.contains("umuhammadiswa.workers.dev") &&
-                    !url.contains("cloudflare")) {
-                    val intent = android.content.Intent(
-                        android.content.Intent.ACTION_VIEW,
-                        android.net.Uri.parse(url)
-                    )
-                    startActivity(intent)
+                    !url.contains("umuhammadiswa.workers.dev")
+                ) {
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
                     return true
                 }
                 return false
             }
+
+            override fun onPageFinished(view: WebView, url: String) {
+                super.onPageFinished(view, url)
+                // ── Insets inject ─────────────────────────────
+                val pair = webView.tag as? Pair<*, *>
+                val statusBarDp = (pair?.first as? Int) ?: 0
+                val navBarDp    = (pair?.second as? Int) ?: 0
+
+                // #topbar কে status bar-এর নিচে নামাও
+                // #navbar কে navigation bar-এর উপরে রাখো
+                val js = """
+                    (function() {
+                        var topbar = document.getElementById('topbar');
+                        var navbar = document.getElementById('navbar');
+                        if (topbar) {
+                            topbar.style.paddingTop = '${statusBarDp}px';
+                            // topbar height adjust করো
+                            var curH = parseInt(window.getComputedStyle(topbar).height) || 62;
+                            topbar.style.height = (curH + ${statusBarDp}) + 'px';
+                        }
+                        if (navbar) {
+                            navbar.style.paddingBottom =
+                                'calc(' + ${navBarDp} + 'px + env(safe-area-inset-bottom, 0px))';
+                        }
+                        // CSS variable হিসেবেও set করো (future-proof)
+                        document.documentElement.style.setProperty(
+                            '--android-status-bar', '${statusBarDp}px');
+                        document.documentElement.style.setProperty(
+                            '--android-nav-bar', '${navBarDp}px');
+                    })();
+                """.trimIndent()
+
+                view.evaluateJavascript(js, null)
+            }
         }
 
-        // ── Load the app ──────────────────────────────────
+        // ── Load ──────────────────────────────────────────────
         webView.loadUrl("file:///android_asset/index.html")
 
-        // ── Notification permission (Android 13+) ─────────
+        // ── Notification permission (Android 13+) ─────────────
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
                     this, Manifest.permission.POST_NOTIFICATIONS
@@ -116,7 +159,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Called from AndroidBridge.requestNotifPermission() */
     fun requestNotifPermFromBridge() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ActivityCompat.requestPermissions(
@@ -128,7 +170,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        // WebView back navigation
         if (webView.canGoBack()) webView.goBack()
         else super.onBackPressed()
     }
