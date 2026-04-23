@@ -1,17 +1,15 @@
-# FTT Signal — ProGuard rules
-# (debug build-এ minify disabled, শুধু release-এর জন্য)
+# FTT Signal ProGuard rules
 
-# WebView JavaScript interface — এটা remove করা যাবে না
+# Keep WebView JS interface methods
 -keepclassmembers class com.ftt.signal.AndroidBridge {
     @android.webkit.JavascriptInterface <methods>;
 }
 
-# OkHttp
--dontwarn okhttp3.**
--dontwarn okio.**
--keep class okhttp3.** { *; }
--keep class okio.** { *; }
+# Keep all public members in our package
+-keep public class com.ftt.signal.** { *; }
 
-# Kotlin coroutines
--dontwarn kotlinx.coroutines.**
--keep class kotlinx.coroutines.** { *; }
+# AndroidX
+-keep class androidx.** { *; }
+
+# Suppress warnings
+-dontwarn java.lang.invoke.*

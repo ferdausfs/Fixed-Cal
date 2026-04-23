@@ -12,5 +12,6 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "FTTSignalApp"
-include ':app'
+
+rootProject.name = "FTT Signal"
+include(":app")
