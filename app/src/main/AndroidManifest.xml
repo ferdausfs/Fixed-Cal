@@ -1,21 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Network -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <!-- Vibration for signal alerts -->
     <uses-permission android:name="android.permission.VIBRATE" />
-
-    <!-- Notifications (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
-    <!-- Keep screen on while scanning -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-
-    <!-- Foreground service for background watchlist scan -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
@@ -28,31 +18,26 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="false"
-        android:theme="@style/Theme.FTTSignal"
         android:usesCleartextTraffic="true"
-        android:hardwareAccelerated="true"
-        tools:targetApi="31">
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:theme="@style/Theme.FTTSignal">
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
             android:launchMode="singleTop"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- Watchlist background scan service -->
         <service
-            android:name=".ScanService"
+            android:name=".worker.SignalScanService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
-
     </application>
 
 </manifest>

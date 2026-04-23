@@ -1,13 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- Allow all HTTPS (default) -->
-    <base-config cleartextTrafficPermitted="false">
-        <trust-anchors>
-            <certificates src="system" />
-        </trust-anchors>
-    </base-config>
-    <!-- Explicitly allow cleartext for Cloudflare workers (they're HTTPS, but just in case) -->
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">umuhammadiswa.workers.dev</domain>
-    </domain-config>
+    <base-config cleartextTrafficPermitted="true" />
 </network-security-config>

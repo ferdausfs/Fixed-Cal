@@ -2,67 +2,23 @@ name: Build Debug APK
 
 on:
   push:
-    branches: [ main, master, dev ]
-  pull_request:
     branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build APK
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
+          distribution: temurin
           java-version: '17'
-          distribution: 'temurin'
-          cache: gradle
-
-      - name: Download Gradle & generate wrapper
-        run: |
-          GRADLE_VERSION=8.6
-          wget -q "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" -O /tmp/gradle.zip
-          unzip -q /tmp/gradle.zip -d /tmp/gradle-dist
-          export PATH="$PATH:/tmp/gradle-dist/gradle-${GRADLE_VERSION}/bin"
-          gradle wrapper --gradle-version=${GRADLE_VERSION} --distribution-type=bin
-          chmod +x gradlew
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ hashFiles('**/*.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: gradle-
-
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
-
-      - name: Get version info
-        id: version
-        run: |
-          echo "date=$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
-          echo "sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
-
-      - name: Upload APK artifact
+      - uses: gradle/actions/setup-gradle@v3
+      - name: Build debug
+        run: ./gradlew assembleDebug
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: FTT-Signal-debug-${{ steps.version.outputs.date }}-${{ steps.version.outputs.sha }}
+          name: ftt-signal-native-debug
           path: app/build/outputs/apk/debug/*.apk
-          retention-days: 30
-
-      - name: Upload to Release (on tag push)
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: app/build/outputs/apk/debug/*.apk
-          name: FTT Signal ${{ github.ref_name }}
-          body: "Debug APK build — ${{ github.ref_name }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

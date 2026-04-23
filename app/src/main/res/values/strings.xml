@@ -1,4 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FTT Signal</string>
+    <string name="scan_channel_name">Watchlist Scanning</string>
+    <string name="scan_channel_desc">Runs native pair scanning in the background</string>
+    <string name="signal_channel_name">Signal Alerts</string>
+    <string name="signal_channel_desc">BUY / SELL alert notifications</string>
 </resources>
