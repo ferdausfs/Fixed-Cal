@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.IBinder
 import com.ftt.signal.data.local.AppPrefs
 import com.ftt.signal.data.model.SignalDirection
+import com.ftt.signal.data.model.label
 import com.ftt.signal.data.remote.SignalRepository
 import com.ftt.signal.util.NotificationHelper
 import kotlinx.coroutines.CoroutineScope
